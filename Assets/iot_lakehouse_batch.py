@@ -7,52 +7,55 @@ import random
 import time
 import boto3
 
-# -------------------------------
-# CONFIGURATION
-# -------------------------------
+
 REGION = "us-east-1"
 S3_BUCKET = "my-iot-lakehouse"
 RAW_PREFIX = "raw/"
 KINESIS_STREAM = "IoTSensorStream"
 
-# AWS Clients
-s3_client = boto3.client("s3", region_name=REGION)
-kinesis_client = boto3.client("kinesis", region_name=REGION)
 
-# -------------------------------
-# FUNCTIONS
-# -------------------------------
+
 
 def simulate_iot_sensor_data(**kwargs):
     """
-    Generate fake IoT sensor data and publish to Kinesis.
+    Generate fake IoT sensor data → Push to Kinesis → Backup to S3.
     """
+
+    # Create AWS clients *inside* the task 
+    s3_client = boto3.client("s3", region_name=REGION)
+    kinesis_client = boto3.client("kinesis", region_name=REGION)
+
     sensor_data = {
-        "equipment_id": f"EQ-{random.randint(1,10)}",
+        "equipment_id": f"EQ-{random.randint(1, 10)}",
         "temperature": round(random.uniform(20, 100), 2),
         "pressure": round(random.uniform(1, 5), 2),
         "vibration": round(random.uniform(0.1, 5), 2),
         "timestamp": int(time.time())
     }
 
-    # Publish to Kinesis Data Stream
+    # Send to Kinesis
     kinesis_client.put_record(
         StreamName=KINESIS_STREAM,
         Data=json.dumps(sensor_data),
         PartitionKey=sensor_data["equipment_id"]
     )
-    print(f"Published to Kinesis: {sensor_data}")
 
-    # Save raw data to S3 for backup
+    print(f"✔ Published to Kinesis: {sensor_data}")
+
+    # Backup copy to S3
     key = f"{RAW_PREFIX}sensor_{sensor_data['timestamp']}.json"
-    s3_client.put_object(Bucket=S3_BUCKET, Key=key, Body=json.dumps(sensor_data))
-    print(f"Saved raw data to s3://{S3_BUCKET}/{key}")
+
+    s3_client.put_object(
+        Bucket=S3_BUCKET,
+        Key=key,
+        Body=json.dumps(sensor_data)
+    )
+
+    print(f"✔ Saved raw file: s3://{S3_BUCKET}/{key}")
 
     return sensor_data
 
-# -------------------------------
-# DAG DEFINITION
-# -------------------------------
+
 
 default_args = {
     "owner": "data-engineer",
@@ -62,28 +65,28 @@ default_args = {
 }
 
 with DAG(
-    "iot_full_pipeline_kinesis_delta",
+    dag_id="iot_full_pipeline_kinesis_delta",
     default_args=default_args,
-    description="End-to-end IoT Lakehouse pipeline with Kinesis and Delta Lake",
-    schedule_interval="@hourly",  # simulate hourly streaming
-    start_date=days_ago(0),
+    description="IoT Lakehouse pipeline using Kinesis + Glue + S3 Delta",
+    schedule_interval="@hourly",
+    start_date=days_ago(1),
     catchup=False,
     max_active_runs=1,
+    tags=["iot", "kinesis", "glue", "delta"],
 ) as dag:
 
-    # Task 1: Simulate IoT sensor data and publish to Kinesis
+    # Task 1 — Publish IoT data to Kinesis
     generate_sensor_data = PythonOperator(
         task_id="generate_sensor_data",
         python_callable=simulate_iot_sensor_data,
     )
 
-    # Task 2: Trigger Glue job to read from Kinesis and write to Delta Lake
+    # Task 2 — Trigger Glue job that reads Kinesis → Writes Delta Lake on S3
     kinesis_to_delta = AwsGlueJobOperator(
         task_id="kinesis_to_delta_glue_job",
-        job_name="Kinesis_to_DeltaLake_Job",  # Your actual Glue streaming job
+        job_name="Kinesis_to_DeltaLake_Job",
         region_name=REGION,
-        wait_for_completion=True,  # wait for Glue job to finish
+        wait_for_completion=True,
     )
 
-    # DAG Flow
     generate_sensor_data >> kinesis_to_delta
