@@ -114,6 +114,7 @@ with DAG(
     job_name="S3_to_DeltaLake_Batch_Job",  
     region_name=REGION,
     wait_for_completion=True,  
+    )
 
     # DAG flow
     generate_sensor_data >> verify_s3_files >> kinesis_to_delta
