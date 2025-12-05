@@ -13,25 +13,20 @@ import os
 # CONFIGURATION
 
 
-# Use Airflow environment 
 REGION = os.getenv("AWS_REGION", "eu-north-1")
 S3_BUCKET = "my-iot-lakehouse"
 RAW_PREFIX = "raw/"
 KINESIS_STREAM = "IoTSensorStream"
-BATCH_SIZE = 5  
+BATCH_SIZE = 5  # number of sensor records per DAG run
 
 
 # FUNCTIONS
 
 
 def simulate_iot_sensor_data(**kwargs):
-    """
-    Generate a batch of simulated IoT sensor readings,
-    send them to Kinesis, and backup to S3.
-    """
+    """Generate sensor data, send to Kinesis, and backup to S3"""
     logging.basicConfig(level=logging.INFO)
-    
-    # Create boto3 clients
+
     s3_client = boto3.client("s3", region_name=REGION)
     kinesis_client = boto3.client("kinesis", region_name=REGION)
 
@@ -70,12 +65,20 @@ def simulate_iot_sensor_data(**kwargs):
             logging.error(f"S3 upload failed: {e}")
 
         sensor_batch.append(sensor_data)
-        time.sleep(0.1)  # slight delay to avoid duplicate timestamps
+        time.sleep(0.1)
 
     return sensor_batch
 
+def check_s3_files(**kwargs):
+    """Ensure S3 has files before triggering Glue"""
+    s3_client = boto3.client("s3", region_name=REGION)
+    response = s3_client.list_objects_v2(Bucket=S3_BUCKET, Prefix=RAW_PREFIX)
+    if response.get("KeyCount", 0) == 0:
+        raise ValueError(f"No files found in s3://{S3_BUCKET}/{RAW_PREFIX}. Cannot run Glue job.")
+    logging.info(f"Found {response['KeyCount']} file(s) in S3. Proceeding to Glue job.")
 
-# DAG DEF
+
+# DAG DEFINITION
 
 
 default_args = {
@@ -100,6 +103,11 @@ with DAG(
         python_callable=simulate_iot_sensor_data,
     )
 
+    verify_s3_files = PythonOperator(
+        task_id="verify_s3_files",
+        python_callable=check_s3_files,
+    )
+
     kinesis_to_delta = GlueJobOperator(
         task_id="kinesis_to_delta_glue_job",
         job_name="Kinesis_to_DeltaLake_Job",
@@ -107,4 +115,5 @@ with DAG(
         wait_for_completion=True,
     )
 
-    generate_sensor_data >> kinesis_to_delta
+    # DAG flow
+    generate_sensor_data >> verify_s3_files >> kinesis_to_delta
