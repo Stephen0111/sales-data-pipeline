@@ -1,17 +1,22 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
-from airflow.utils.dates import days_ago
+import pendulum
 import json
 import random
 import time
 import boto3
 
 
+# CONFIGURATION
+
 REGION = "us-east-1"
 S3_BUCKET = "my-iot-lakehouse"
 RAW_PREFIX = "raw/"
 KINESIS_STREAM = "IoTSensorStream"
+
+
+# FUNCTIONS
 
 
 def simulate_iot_sensor_data(**kwargs):
@@ -26,24 +31,32 @@ def simulate_iot_sensor_data(**kwargs):
         "timestamp": int(time.time())
     }
 
+    # Send to Kinesis
     kinesis_client.put_record(
         StreamName=KINESIS_STREAM,
         Data=json.dumps(sensor_data),
         PartitionKey=sensor_data["equipment_id"]
     )
+    print(f"Published to Kinesis: {sensor_data}")
 
+    # Backup to S3
     key = f"{RAW_PREFIX}sensor_{sensor_data['timestamp']}.json"
     s3_client.put_object(
         Bucket=S3_BUCKET,
         Key=key,
         Body=json.dumps(sensor_data)
     )
+    print(f"Saved raw data to s3://{S3_BUCKET}/{key}")
 
     return sensor_data
 
 
+# DAG DEFINITION
+
+
 default_args = {
     "owner": "data-engineer",
+    "depends_on_past": False,
     "email_on_failure": False,
     "email_on_retry": False,
 }
@@ -51,11 +64,11 @@ default_args = {
 with DAG(
     "iot_full_pipeline_kinesis_delta",
     default_args=default_args,
-    description="IoT Lakehouse pipeline using Kinesis + Glue + Delta Lake",
+    description="End-to-end IoT Lakehouse pipeline with Kinesis and Delta Lake",
     schedule_interval="@hourly",
-    start_date=days_ago(1),
+    start_date=pendulum.now().subtract(days=1),
     catchup=False,
-    max_active_runs=1
+    max_active_runs=1,
 ) as dag:
 
     generate_sensor_data = PythonOperator(
