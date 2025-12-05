@@ -9,6 +9,10 @@ The pipeline is orchestrated end-to-end using **Cloud Composer (Managed Apache A
 
 ## 🧭 Architecture Overview
 
+
+### **Architecture**
+![DAG](Assets/architecture.png)
+
          ┌─────────────────────┐
          │     CSV Upload      │
          │   (raw/autos.csv)  │
@@ -93,8 +97,7 @@ Stores cleaned, processed sales data with daily appends.
 
 ## 📸 Project Screenshots
 
-### **Architecture**
-![DAG](Assets/dag1.png)
+
 
 
 
