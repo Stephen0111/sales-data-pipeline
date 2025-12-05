@@ -13,19 +13,20 @@ import os
 # CONFIGURATION
 
 
-# Dynamically use region from environment if set, else fallback
+# Use Airflow environment 
 REGION = os.getenv("AWS_REGION", "eu-north-1")
 S3_BUCKET = "my-iot-lakehouse"
 RAW_PREFIX = "raw/"
 KINESIS_STREAM = "IoTSensorStream"
-BATCH_SIZE = 5  # number of sensor records per DAG run
+BATCH_SIZE = 5  
+
 
 # FUNCTIONS
 
 
 def simulate_iot_sensor_data(**kwargs):
     """
-    Generate a batch of simulated IoT sensor readings, 
+    Generate a batch of simulated IoT sensor readings,
     send them to Kinesis, and backup to S3.
     """
     logging.basicConfig(level=logging.INFO)
@@ -73,7 +74,8 @@ def simulate_iot_sensor_data(**kwargs):
 
     return sensor_batch
 
-# DAG DEFINITION
+
+# DAG DEF
 
 
 default_args = {
