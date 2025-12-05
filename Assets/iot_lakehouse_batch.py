@@ -65,7 +65,7 @@ with DAG(
     "iot_full_pipeline_kinesis_delta",
     default_args=default_args,
     description="End-to-end IoT Lakehouse pipeline with Kinesis and Delta Lake",
-    schedule_interval="@hourly",
+    schedule="@hourly",   # UPDATED for Airflow 2.10+
     start_date=pendulum.now().subtract(days=1),
     catchup=False,
     max_active_runs=1,
