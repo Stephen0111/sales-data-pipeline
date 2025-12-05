@@ -108,12 +108,12 @@ with DAG(
         python_callable=check_s3_files,
     )
 
+   
     kinesis_to_delta = GlueJobOperator(
-        task_id="kinesis_to_delta_glue_job",
-        job_name="Kinesis_to_DeltaLake_Job",
-        region_name=REGION,
-        wait_for_completion=True,
-    )
+    task_id="s3_to_delta_batch_job",
+    job_name="S3_to_DeltaLake_Batch_Job",  
+    region_name=REGION,
+    wait_for_completion=True,  
 
     # DAG flow
     generate_sensor_data >> verify_s3_files >> kinesis_to_delta
