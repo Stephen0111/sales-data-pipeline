@@ -102,19 +102,21 @@ Stores cleaned, processed sales data with daily appends.
 
 
 ### **1. Airflow DAG**
-![DAG](Assets/dag1.png)
-![DAG](Assets/dag2.png)
+![DAG](Assets/dagster.png)
+
 
 ### **2. GCS Bucket**
-![Raw CSV](Assets/raw_bucket.png)
-![Processed CSV](Assets/processed_bucket.png)
+![](Assets/bucket1.png)
+![](Assets/bucket2.png)
 
 ### **3. BigQuery**
-![BigQuery Raw Table](Assets/bigquery_raw.png)
-![BigQuery Clean Table](Assets/bigquery_clean.png)
+![BigQuery Raw Table](Assets/bigquery.png)
 
-### **4. Analytics / Looker Studio**
-![Looker Dashboard](Assets/looker_dashboard.png)
+
+### **4. GCP Airflow Environment**
+![](Assets/env1.png)
+![](Assets/env2.png)
+
 
 ---
 
@@ -131,4 +133,4 @@ Stores cleaned, processed sales data with daily appends.
 
 ---
 
-This setup ensures a **robust, automated, and scalable ETL pipeline** suitable for production-grade retail sales analytics.
+
