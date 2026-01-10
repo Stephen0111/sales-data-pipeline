@@ -9,7 +9,7 @@ from io import StringIO
 
 # CONFIG
 
-PROJECT_ID = "sales-data-pipeline-480101"
+PROJECT_ID = "sales-data-pipeline-****"
 BUCKET_NAME = "sales-data-pipeline-bucket"
 DATASET = "sales_raw"
 TABLE = "raw_sales"
