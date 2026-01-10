@@ -7,7 +7,7 @@ The pipeline is orchestrated end-to-end using **Cloud Composer (Managed Apache A
 
 ---
 
-## 🧭 Architecture Overview
+## Architecture 
 
 
 ### **Architecture**
@@ -44,32 +44,32 @@ The pipeline is orchestrated end-to-end using **Cloud Composer (Managed Apache A
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🔹 Automated CSV Ingestion  
+### Automated CSV Ingestion  
 - Waits for new CSV files in the GCS `raw/` bucket using **GCSObjectExistenceSensor**.
 - Supports automated daily ingestion or can be extended for **event-driven triggers**.
 
-### 🔹 Cloud-Orchestrated ETL with Airflow  
+### Cloud-Orchestrated ETL with Airflow  
 - Managed using **Cloud Composer**.
 - Handles scheduling, retries, logging, and task orchestration.
 - Tasks include **download → clean → append → upload → BigQuery load**.
 
-### 🔹 Data Cleaning & Processing  
+### Data Cleaning & Processing  
 - Cleans column names to be **BigQuery-compatible**:
   - Removes special characters
   - Converts to lowercase
   - Replaces spaces and symbols with underscores
 - Appends new CSV data to the **existing cleaned CSV** in `processed/`.
 
-### 🔹 BigQuery Integration  
+### BigQuery Integration  
 - Loads cleaned CSV into BigQuery in **append mode**.
 - Schema is **autodetected** from the CSV.
 - Enables analytics-ready queries and dashboards.
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
@@ -81,9 +81,9 @@ The pipeline is orchestrated end-to-end using **Cloud Composer (Managed Apache A
 
 ---
 
-## 📂 Output Tables (BigQuery)
+## Output Tables (BigQuery)
 
-### **1️⃣ sales_raw.raw_sales**  
+### **sales_raw.raw_sales**  
 Stores cleaned, processed sales data with daily appends.
 
 | Column | Description |
@@ -95,7 +95,7 @@ Stores cleaned, processed sales data with daily appends.
 
 ---
 
-## 📸 Project Screenshots
+## Project Screenshots
 
 
 
