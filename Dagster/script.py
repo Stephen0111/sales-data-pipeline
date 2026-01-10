@@ -6,9 +6,9 @@ from google.cloud import storage, bigquery
 import pandas as pd
 from io import StringIO
 
-# -----------------------------
+
 # CONFIG
-# -----------------------------
+
 PROJECT_ID = "sales-data-pipeline-480101"
 BUCKET_NAME = "sales-data-pipeline-bucket"
 DATASET = "sales_raw"
@@ -18,9 +18,9 @@ RAW_FILE_PATH = "raw/autos.csv"
 CLEANED_FILE_PATH = "processed/autos_cleaned.csv"
 
 
-# ----------------------------------
+
 # 1. Clean column names function
-# ----------------------------------
+
 def clean_column_names(df):
     df.columns = (
         df.columns
@@ -30,9 +30,9 @@ def clean_column_names(df):
     return df
 
 
-# ----------------------------------
+
 # 2. Task: Download CSV, clean it, append to cleaned CSV
-# ----------------------------------
+
 def upload_cleaned_csv(**context):
     storage_client = storage.Client()
     bucket = storage_client.bucket(BUCKET_NAME)
@@ -59,9 +59,9 @@ def upload_cleaned_csv(**context):
     return CLEANED_FILE_PATH
 
 
-# ----------------------------------
+
 # 3. Task: Load cleaned file into BigQuery
-# ----------------------------------
+
 def load_file_to_bq(**context):
     client = bigquery.Client()
 
@@ -84,9 +84,9 @@ def load_file_to_bq(**context):
     load_job.result()  # Waits for job to complete
 
 
-# ----------------------------------
+
 # DAG DEFINITION
-# ----------------------------------
+
 with DAG(
     "retail_sales_scheduled_ingestion",
     start_date=days_ago(1),
