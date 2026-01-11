@@ -110,7 +110,7 @@ Stores cleaned, structured sales data with daily appends.
 
 ---
 
-## ⚡ Workflow Summary
+##  Workflow Summary
 
 1. **Sensor Task** monitors for new CSV in `raw/autos.csv`.  
 2. **PythonOperator** cleans column names and appends rows to `processed/autos_cleaned.csv`.  
